@@ -5,11 +5,8 @@ const { pool } = require('../config/database');
 const { auth, authorize } = require('../middleware/auth');
 const { ratingValidationRules, passwordUpdateValidationRules, validate } = require('../utils/validators');
 
-// All user routes require authentication
 router.use(auth);
 router.use(authorize('normal_user'));
-
-// Get all stores with search
 router.get('/stores', async (req, res) => {
   try {
     const { name, address, sortBy = 'name', sortOrder = 'ASC' } = req.query;
@@ -36,8 +33,6 @@ router.get('/stores', async (req, res) => {
     }
 
     query += ' GROUP BY s.id';
-
-    // Validate sortBy and sortOrder
     const validSortFields = ['name', 'address', 'rating'];
     const validSortOrder = ['ASC', 'DESC'];
     const sortField = validSortFields.includes(sortBy) ? sortBy : 'name';
@@ -50,8 +45,6 @@ router.get('/stores', async (req, res) => {
     }
 
     const result = await pool.query(query, params);
-
-    // Get user's rating for each store
     const userId = req.user.id;
     const userRatings = await pool.query(
       'SELECT store_id, rating FROM ratings WHERE user_id = $1',
@@ -78,8 +71,6 @@ router.get('/stores', async (req, res) => {
     res.status(500).json({ message: 'Server error' });
   }
 });
-
-// Get store details
 router.get('/stores/:id', async (req, res) => {
   try {
     const { id } = req.params;
@@ -115,27 +106,21 @@ router.get('/stores/:id', async (req, res) => {
     res.status(500).json({ message: 'Server error' });
   }
 });
-
-// Submit or update rating
 router.post('/ratings', ratingValidationRules(), validate, async (req, res) => {
   try {
     const { store_id, rating } = req.body;
     const user_id = req.user.id;
 
-    // Check if store exists
     const storeExists = await pool.query('SELECT id FROM stores WHERE id = $1', [store_id]);
     if (storeExists.rows.length === 0) {
       return res.status(404).json({ message: 'Store not found' });
     }
-
-    // Check if rating already exists
     const existingRating = await pool.query(
       'SELECT id FROM ratings WHERE user_id = $1 AND store_id = $2',
       [user_id, store_id]
     );
 
     if (existingRating.rows.length > 0) {
-      // Update existing rating
       const result = await pool.query(
         'UPDATE ratings SET rating = $1, updated_at = CURRENT_TIMESTAMP WHERE user_id = $2 AND store_id = $3 RETURNING *',
         [rating, user_id, store_id]
@@ -146,7 +131,6 @@ router.post('/ratings', ratingValidationRules(), validate, async (req, res) => {
         rating: result.rows[0],
       });
     } else {
-      // Insert new rating
       const result = await pool.query(
         'INSERT INTO ratings (user_id, store_id, rating) VALUES ($1, $2, $3) RETURNING *',
         [user_id, store_id, rating]
@@ -163,7 +147,6 @@ router.post('/ratings', ratingValidationRules(), validate, async (req, res) => {
   }
 });
 
-// Update rating
 router.put('/ratings/:id', ratingValidationRules(), validate, async (req, res) => {
   try {
     const { id } = req.params;
@@ -189,31 +172,22 @@ router.put('/ratings/:id', ratingValidationRules(), validate, async (req, res) =
   }
 });
 
-// Update password
 router.put('/password', passwordUpdateValidationRules(), validate, async (req, res) => {
   try {
     const { currentPassword, newPassword } = req.body;
     const user_id = req.user.id;
-
-    // Get current user
     const userResult = await pool.query('SELECT password FROM users WHERE id = $1', [user_id]);
 
     if (userResult.rows.length === 0) {
       return res.status(404).json({ message: 'User not found' });
     }
-
-    // Verify current password
     const isMatch = await bcrypt.compare(currentPassword, userResult.rows[0].password);
 
     if (!isMatch) {
       return res.status(401).json({ message: 'Current password is incorrect' });
     }
-
-    // Hash new password
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(newPassword, salt);
-
-    // Update password
     await pool.query('UPDATE users SET password = $1, updated_at = CURRENT_TIMESTAMP WHERE id = $2', [
       hashedPassword,
       user_id,
@@ -227,5 +201,3 @@ router.put('/password', passwordUpdateValidationRules(), validate, async (req, r
 });
 
 module.exports = router;
-
-

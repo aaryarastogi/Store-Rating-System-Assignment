@@ -9,15 +9,12 @@ const pool = new Pool({
   password: process.env.DB_PASSWORD || '',
 });
 
-// Handle pool errors
 pool.on('error', (err) => {
   console.error('Unexpected error on idle client', err);
 });
 
-// Initialize database tables
 const initializeDatabase = async () => {
   try {
-    // Users table
     await pool.query(`
       CREATE TABLE IF NOT EXISTS users (
         id SERIAL PRIMARY KEY,
@@ -32,7 +29,6 @@ const initializeDatabase = async () => {
       )
     `);
 
-    // Stores table
     await pool.query(`
       CREATE TABLE IF NOT EXISTS stores (
         id SERIAL PRIMARY KEY,
@@ -44,7 +40,6 @@ const initializeDatabase = async () => {
       )
     `);
 
-    // Ratings table
     await pool.query(`
       CREATE TABLE IF NOT EXISTS ratings (
         id SERIAL PRIMARY KEY,
@@ -57,7 +52,6 @@ const initializeDatabase = async () => {
       )
     `);
 
-    // Create indexes for better performance
     await pool.query(`
       CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
       CREATE INDEX IF NOT EXISTS idx_users_role ON users(role);
@@ -74,4 +68,3 @@ const initializeDatabase = async () => {
 };
 
 module.exports = { pool, initializeDatabase };
-

@@ -5,11 +5,9 @@ const { pool } = require('../config/database');
 const { auth, authorize } = require('../middleware/auth');
 const { userValidationRules, storeValidationRules, validate } = require('../utils/validators');
 
-// All admin routes require authentication and admin role
 router.use(auth);
 router.use(authorize('system_administrator'));
 
-// Get dashboard statistics
 router.get('/dashboard', async (req, res) => {
   try {
     const totalUsers = await pool.query('SELECT COUNT(*) FROM users');
@@ -26,13 +24,9 @@ router.get('/dashboard', async (req, res) => {
     res.status(500).json({ message: 'Server error' });
   }
 });
-
-// Add new store
 router.post('/stores', storeValidationRules(), validate, async (req, res) => {
   try {
     const { name, email, address } = req.body;
-
-    // Check if store already exists
     const existingStore = await pool.query('SELECT id FROM stores WHERE email = $1', [email]);
 
     if (existingStore.rows.length > 0) {
@@ -54,7 +48,6 @@ router.post('/stores', storeValidationRules(), validate, async (req, res) => {
   }
 });
 
-// Get all stores with filters and sorting
 router.get('/stores', async (req, res) => {
   try {
     const { name, email, address, sortBy = 'name', sortOrder = 'ASC' } = req.query;
@@ -87,8 +80,6 @@ router.get('/stores', async (req, res) => {
     }
 
     query += ' GROUP BY s.id';
-
-    // Validate sortBy and sortOrder
     const validSortFields = ['name', 'email', 'address', 'rating'];
     const validSortOrder = ['ASC', 'DESC'];
     const sortField = validSortFields.includes(sortBy) ? sortBy : 'name';
@@ -117,23 +108,16 @@ router.get('/stores', async (req, res) => {
   }
 });
 
-// Add new user (admin, normal user, or store owner)
 router.post('/users', userValidationRules(), validate, async (req, res) => {
   try {
     const { name, email, password, address, role, store_id } = req.body;
-
-    // Check if user already exists
     const existingUser = await pool.query('SELECT id FROM users WHERE email = $1', [email]);
 
     if (existingUser.rows.length > 0) {
       return res.status(400).json({ message: 'User already exists with this email' });
     }
-
-    // Validate role
     const validRoles = ['system_administrator', 'normal_user', 'store_owner'];
     const userRole = validRoles.includes(role) ? role : 'normal_user';
-
-    // If store owner, validate store_id
     if (userRole === 'store_owner' && store_id) {
       const storeExists = await pool.query('SELECT id FROM stores WHERE id = $1', [store_id]);
       if (storeExists.rows.length === 0) {
@@ -141,7 +125,6 @@ router.post('/users', userValidationRules(), validate, async (req, res) => {
       }
     }
 
-    // Hash password
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
 
@@ -160,7 +143,6 @@ router.post('/users', userValidationRules(), validate, async (req, res) => {
   }
 });
 
-// Get all users with filters and sorting
 router.get('/users', async (req, res) => {
   try {
     const { name, email, address, role, sortBy = 'name', sortOrder = 'ASC' } = req.query;
@@ -198,7 +180,6 @@ router.get('/users', async (req, res) => {
       query += ' WHERE ' + conditions.join(' AND ');
     }
 
-    // Validate sortBy and sortOrder
     const validSortFields = ['name', 'email', 'address', 'role'];
     const validSortOrder = ['ASC', 'DESC'];
     const sortField = validSortFields.includes(sortBy) ? sortBy : 'name';
@@ -225,7 +206,6 @@ router.get('/users', async (req, res) => {
   }
 });
 
-// Get user details
 router.get('/users/:id', async (req, res) => {
   try {
     const { id } = req.params;
@@ -249,8 +229,6 @@ router.get('/users/:id', async (req, res) => {
       store_id: user.store_id,
       store_name: user.store_name,
     };
-
-    // If user is a store owner, get their store rating
     if (user.role === 'store_owner' && user.store_id) {
       const ratingResult = await pool.query(
         'SELECT COALESCE(AVG(rating), 0) as average_rating, COUNT(*) as total_ratings FROM ratings WHERE store_id = $1',
@@ -269,5 +247,3 @@ router.get('/users/:id', async (req, res) => {
 });
 
 module.exports = router;
-
-

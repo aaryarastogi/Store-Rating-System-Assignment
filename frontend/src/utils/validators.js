@@ -40,5 +40,3 @@ export const validateRating = (rating) => {
   }
   return '';
 };
-
-

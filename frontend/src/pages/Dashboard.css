@@ -26,8 +26,6 @@
   border-bottom-color: #007bff;
   font-weight: 600;
 }
-
-/* Responsive Design */
 @media (max-width: 768px) {
   .tabs {
     flex-wrap: wrap;

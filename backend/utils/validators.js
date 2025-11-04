@@ -1,6 +1,5 @@
 const { body, validationResult } = require('express-validator');
 
-// Validation middleware
 const validate = (req, res, next) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
@@ -8,8 +7,6 @@ const validate = (req, res, next) => {
   }
   next();
 };
-
-// User validation rules
 const userValidationRules = () => {
   return [
     body('name')
@@ -32,7 +29,6 @@ const userValidationRules = () => {
   ];
 };
 
-// Store validation rules
 const storeValidationRules = () => {
   return [
     body('name')
@@ -50,7 +46,6 @@ const storeValidationRules = () => {
   ];
 };
 
-// Rating validation rules
 const ratingValidationRules = () => {
   return [
     body('rating')
@@ -62,7 +57,6 @@ const ratingValidationRules = () => {
   ];
 };
 
-// Password update validation
 const passwordUpdateValidationRules = () => {
   return [
     body('currentPassword')
@@ -83,5 +77,3 @@ module.exports = {
   ratingValidationRules,
   passwordUpdateValidationRules,
 };
-
-

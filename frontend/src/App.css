@@ -259,7 +259,6 @@
   color: #000;
 }
 
-/* Responsive Design */
 @media (max-width: 1024px) {
   .container {
     padding: 16px;
@@ -574,4 +573,3 @@
     font-size: 11px;
   }
 }
-

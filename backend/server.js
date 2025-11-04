@@ -11,16 +11,12 @@ require('dotenv').config();
 
 const app = express();
 const PORT = process.env.PORT || 5001;
-
-// Middleware
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Routes
 app.use('/api/auth', authRoutes);
 
-// Get current user route
 app.get('/api/auth/me', auth, async (req, res) => {
   try {
     const { pool } = require('./config/database');
@@ -44,18 +40,14 @@ app.use('/api/admin', adminRoutes);
 app.use('/api/user', userRoutes);
 app.use('/api/store-owner', storeOwnerRoutes);
 
-// Health check
 app.get('/api/health', (req, res) => {
   res.json({ status: 'OK', message: 'Server is running' });
 });
 
-// Error handling middleware
 app.use((err, req, res, next) => {
   console.error(err.stack);
   res.status(500).json({ message: 'Something went wrong!', error: err.message });
 });
-
-// Initialize database and start server
 initializeDatabase()
   .then(() => {
     app.listen(PORT, () => {
@@ -68,12 +60,9 @@ initializeDatabase()
     console.error('Please ensure PostgreSQL is running and the database exists.');
     console.error('You can create the database with: createdb store_rating_db');
     console.error(`Starting server anyway on port ${PORT} - database operations will fail until connected.`);
-    
-    // Start server even if database fails - so user can see the error
     app.listen(PORT, () => {
       console.log(`Server is running on port ${PORT} (database not connected)`);
     });
   });
 
 module.exports = app;
-

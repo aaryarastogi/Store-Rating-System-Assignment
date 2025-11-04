@@ -37,7 +37,6 @@ const Login = () => {
 
     if (result.success) {
       const role = result.user?.role;
-      // Redirect based on role
       if (role === 'system_administrator') {
         navigate('/admin');
       } else if (role === 'store_owner') {
@@ -131,4 +130,3 @@ const Login = () => {
 };
 
 export default Login;
-

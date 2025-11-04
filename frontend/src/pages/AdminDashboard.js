@@ -19,11 +19,8 @@ const AdminDashboard = () => {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
 
-  // Filters
   const [storeFilters, setStoreFilters] = useState({ name: '', email: '', address: '', sortBy: 'name', sortOrder: 'ASC' });
   const [userFilters, setUserFilters] = useState({ name: '', email: '', address: '', role: '', sortBy: 'name', sortOrder: 'ASC' });
-
-  // Form data
   const [storeForm, setStoreForm] = useState({ name: '', email: '', address: '' });
   const [userForm, setUserForm] = useState({ name: '', email: '', password: '', address: '', role: 'normal_user', store_id: '' });
 
@@ -472,4 +469,3 @@ const AdminDashboard = () => {
 };
 
 export default AdminDashboard;
-
